@@ -1,4 +1,4 @@
-module bubbletea
+module taskui
 
 go 1.15
 
