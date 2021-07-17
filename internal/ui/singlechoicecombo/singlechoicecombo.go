@@ -2,7 +2,6 @@ package singlechoicecombo
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"log"
 	"strings"
 	"taskui/internal/ui/choiceitem"
 )
@@ -14,6 +13,7 @@ type ChoiceMsg struct {
 type Model struct {
 	choices       []choiceitem.Model
 	selectedIndex int
+	parent        *tea.Model
 }
 
 func NewModel(choices []choiceitem.Choice) Model {
@@ -33,7 +33,7 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) ChoiceMade() tea.Msg {
+func (m *Model) ChoiceMade() tea.Msg {
 	return ChoiceMsg{
 		Choice: m.choices[m.selectedIndex].GetChoice(),
 	}
@@ -45,8 +45,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			log.Println("Choice selected")
-			return m, m.ChoiceMade
+			//log.Println("Choice selected")
+			return *m.parent, tea.Batch(tea.ClearScrollArea, m.ChoiceMade)
 
 		case "up", "j", "shift+tab":
 			m.selectedIndex--
@@ -77,4 +77,8 @@ func (m Model) View() string {
 	}
 
 	return b.String()
+}
+
+func (m *Model) SetParent(model tea.Model) {
+	m.parent = &model
 }

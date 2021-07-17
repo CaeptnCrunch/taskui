@@ -53,3 +53,7 @@ func (m Model) Value() string {
 func (m Model) View() string {
 	return m.model.View()
 }
+
+func (m *Model) SetValue(val string) {
+	m.model.SetValue(val)
+}

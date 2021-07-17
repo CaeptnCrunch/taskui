@@ -8,29 +8,54 @@ import (
 	"log"
 	"strings"
 	"taskui/internal/ui/button"
+	"taskui/internal/ui/choiceitem"
+	"taskui/internal/ui/singlechoicecombo"
 	"taskui/internal/ui/textinput"
 )
 
 const (
-	DESC_INDEX = iota
-	PROJ_INDEX = iota
-	PRIO_INDEX = iota
+	DESC_INDEX       = iota
+	PROJ_INDEX       = iota
+	PRIO_BTN_INDEX   = iota
+	ENTER_BTN_INDEX  = iota
+	CANCEL_BTN_INDEX = iota
 )
 
 type Model struct {
-	inputs       [3]textinput.Model
-	enterButton  button.Model
-	cancelButton button.Model
-	focusIndex   int
-	tw           *taskwarrior.TaskWarrior
+	inputs             [2]textinput.Model
+	enterButton        button.Model
+	cancelButton       button.Model
+	openPriorityButton button.Model
+
+	// state of the input componentes
+	description string
+	project     string
+
+	focusIndex int
+	tw         *taskwarrior.TaskWarrior
+
+	// subviews
+	priorityView       singlechoicecombo.Model
+	priorityViewActive bool
+	choosenPriority    choiceitem.Choice
+	choices            []choiceitem.Choice
 }
 
 func NewModel() Model {
 	m := Model{
-		enterButton:  button.NewModel("ENTER"),
-		cancelButton: button.NewModel("CANCEL"),
-		focusIndex:   0,
+		enterButton:        button.NewModel("ENTER"),
+		cancelButton:       button.NewModel("CANCEL"),
+		openPriorityButton: button.NewModel("PRIO"),
+		focusIndex:         0,
 	}
+
+	m.choices = make([]choiceitem.Choice, 3)
+	m.choices[0] = choiceitem.Choice{Key: "L", Label: "Low"}
+	m.choices[1] = choiceitem.Choice{Key: "M", Label: "Medium"}
+	m.choices[2] = choiceitem.Choice{Key: "H", Label: "High"}
+
+	m.priorityView = singlechoicecombo.NewModel(m.choices)
+	m.priorityViewActive = false
 
 	var t textinput.Model
 	// initialize description input
@@ -44,12 +69,6 @@ func NewModel() Model {
 	t.SetPlaceholder("Project")
 	m.inputs[PROJ_INDEX] = t
 
-	// initialize priority input
-	t = textinput.NewModel()
-	t.SetPlaceholder("Priority")
-	t.SetCharLimit(1)
-	m.inputs[PRIO_INDEX] = t
-
 	tw, err := taskwarrior.NewTaskWarrior("~/.taskrc")
 	if err != nil {
 		log.Fatalln(err)
@@ -60,17 +79,16 @@ func NewModel() Model {
 }
 
 func (m Model) createTaskwarriorTask() {
+	priority := m.choosenPriority.Key
 
-	prio := strings.ToUpper(m.inputs[PRIO_INDEX].Value())
-
-	if prio != "H" && prio != "M" && prio != "L" {
-		prio = ""
+	if priority != "H" && priority != "M" && priority != "L" {
+		priority = ""
 	}
 
 	task := taskwarrior.Task{
 		Description: m.inputs[DESC_INDEX].Value(),
 		Project:     m.inputs[PROJ_INDEX].Value(),
-		Priority:    prio,
+		Priority:    priority,
 	}
 	m.tw.AddTask(&task)
 	err := m.tw.Commit()
@@ -83,39 +101,44 @@ func (m Model) validateDescription() bool {
 	return len(m.inputs[DESC_INDEX].Value()) > 3
 }
 
-func (m Model) validatePriority() bool {
-	s := m.inputs[PRIO_INDEX].Value()
-	return len(s) == 0 || s == "L" || s == "M" || s == "H"
-}
-
 func (m Model) Init() tea.Cmd {
 	return teaTextinput.Blink
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case singlechoicecombo.ChoiceMsg:
+		m.choosenPriority = msg.Choice
+		m.openPriorityButton.Activate()
+		m.openPriorityButton.SetText(fmt.Sprintf("PRIO:%s", msg.Choice.Key))
 	case tea.KeyMsg:
 
 		switch msg.String() {
 		case "esc", "ctrl+q":
-			return m, tea.Quit
-		case "tab", "shift+tab", "up", "down", "enter":
-			s := msg.String()
+			return m, tea.Batch(tea.ClearScrollArea, tea.Quit)
+		case "enter":
 
-			// quit on enter after last line
-			if s == "enter" && m.focusIndex == len(m.inputs) {
-				if m.validatePriority() && m.validateDescription() {
+			switch m.focusIndex {
+			case ENTER_BTN_INDEX:
+				if m.validateDescription() {
 					m.createTaskwarriorTask()
 				} else {
 					break
 				}
 				return m, tea.Quit
+			case PRIO_BTN_INDEX:
+				m.description = m.inputs[DESC_INDEX].Value()
+				m.project = m.inputs[PROJ_INDEX].Value()
+				m.priorityView.SetParent(&m)
+				return &m.priorityView, nil
+			case CANCEL_BTN_INDEX:
+				if m.focusIndex == CANCEL_BTN_INDEX {
+					return m, tea.Quit
+				}
 			}
 
-			if s == "enter" && m.focusIndex == len(m.inputs)+1 {
-				fmt.Println("Exit by cancel")
-				return m, tea.Quit
-			}
+		case "tab", "shift+tab", "up", "down":
+			s := msg.String()
 
 			// select next index
 			if s == "up" || s == "shift+tab" {
@@ -124,10 +147,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focusIndex++
 			}
 
-			if m.focusIndex > len(m.inputs)+1 {
+			if m.focusIndex > CANCEL_BTN_INDEX {
 				m.focusIndex = 0
 			} else if m.focusIndex < 0 {
-				m.focusIndex = len(m.inputs) + 1
+				m.focusIndex = CANCEL_BTN_INDEX
 			}
 
 			// set focus
@@ -168,19 +191,24 @@ func (m Model) View() string {
 	b.WriteString(m.inputs[DESC_INDEX].View())
 	b.WriteRune('\n')
 	b.WriteString(m.inputs[PROJ_INDEX].View())
-	b.WriteString("\t")
-	b.WriteString(m.inputs[PRIO_INDEX].View())
 
-	m.enterButton.Blurr()
-	if m.focusIndex == len(m.inputs) {
+	m.enterButton.Blur()
+	if m.focusIndex == ENTER_BTN_INDEX {
 		m.enterButton.Focus()
 	}
 
-	m.cancelButton.Blurr()
-	if m.focusIndex == len(m.inputs)+1 {
+	m.openPriorityButton.Blur()
+	if m.focusIndex == PRIO_BTN_INDEX {
+		m.openPriorityButton.Focus()
+	}
+
+	m.cancelButton.Blur()
+	if m.focusIndex == CANCEL_BTN_INDEX {
 		m.cancelButton.Focus()
 	}
 	b.WriteRune('\n')
+	b.WriteString(m.openPriorityButton.View())
+	b.WriteRune('\t')
 	b.WriteString(m.enterButton.View())
 	b.WriteRune('\t')
 	b.WriteString(m.cancelButton.View())

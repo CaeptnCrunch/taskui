@@ -6,8 +6,9 @@ import (
 )
 
 type Model struct {
-	text     string
-	focussed bool
+	text      string
+	focussed  bool
+	acticated bool
 }
 
 func NewModel(text string) Model {
@@ -16,12 +17,20 @@ func NewModel(text string) Model {
 	}
 }
 
-func (m *Model) Blurr() {
+func (m *Model) SetText(text string) {
+	m.text = text
+}
+
+func (m *Model) Blur() {
 	m.focussed = false
 }
 
 func (m *Model) Focus() {
 	m.focussed = true
+}
+
+func (m *Model) Activate() {
+	m.acticated = true
 }
 
 func (m *Model) View() string {
@@ -33,6 +42,8 @@ func (m *Model) View() string {
 
 	if m.focussed {
 		return styles.FocusedStyle.Render(b.String())
+	} else if m.acticated {
+		return styles.NoStyle.Render(b.String())
 	} else {
 		return styles.BlurredStyle.Render(b.String())
 	}
