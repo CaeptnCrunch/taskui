@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"log"
 	"strings"
+	styles "taskui/internal"
 	"taskui/internal/ui/button"
 	"taskui/internal/ui/choiceitem"
 	"taskui/internal/ui/singlechoicecombo"
@@ -184,6 +185,18 @@ func (m *Model) updateInputs(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+func statusLine() string {
+	var b strings.Builder
+
+	b.WriteString("(tab/shift+tab, up/down: select)")
+	b.WriteString(styles.Dot)
+	b.WriteString("(enter: choose)")
+	b.WriteString(styles.Dot)
+	b.WriteString("(esc, ctrl+q: quit)")
+
+	return styles.SubtleStyle.Render(b.String())
+}
+
 func (m Model) View() string {
 	var b strings.Builder
 
@@ -212,6 +225,10 @@ func (m Model) View() string {
 	b.WriteString(m.enterButton.View())
 	b.WriteRune('\t')
 	b.WriteString(m.cancelButton.View())
+
+	// status line
+	b.WriteRune('\n')
+	b.WriteString(statusLine())
 
 	return b.String()
 }

@@ -3,6 +3,7 @@ package singlechoicecombo
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"strings"
+	styles "taskui/internal"
 	"taskui/internal/ui/choiceitem"
 )
 
@@ -56,10 +57,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "down", "k", "tab":
 			m.selectedIndex = (m.selectedIndex + 1) % len(m.choices)
+
+		case "esc":
+			return *m.parent, tea.ClearScrollArea
 		}
+
 	}
 
 	return m, nil
+}
+
+func statusLine() string {
+	var b strings.Builder
+
+	b.WriteString("(tab/shift+tab, up/down, j/k: select)")
+	b.WriteString(styles.Dot)
+	b.WriteString("(enter: choose)")
+	b.WriteString(styles.Dot)
+	b.WriteString("(esc, ctrl+q: quit)")
+
+	return styles.SubtleStyle.Render(b.String())
 }
 
 func (m Model) View() string {
@@ -75,6 +92,8 @@ func (m Model) View() string {
 		b.WriteString(c.View())
 		b.WriteRune('\n')
 	}
+
+	b.WriteString(statusLine())
 
 	return b.String()
 }
