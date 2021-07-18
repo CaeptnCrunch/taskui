@@ -1,10 +1,10 @@
 package singlechoicecombo
 
 import (
+	styles "github.com/CaeptnCrunch/taskui/internal"
+	"github.com/CaeptnCrunch/taskui/internal/ui/choiceitem"
 	tea "github.com/charmbracelet/bubbletea"
 	"strings"
-	styles "taskui/internal"
-	"taskui/internal/ui/choiceitem"
 )
 
 type ChoiceMsg struct {

@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/CaeptnCrunch/taskui/internal/ui/view/taskdetails"
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
-	"taskui/internal/ui/view/taskdetails"
 )
 
 func main() {

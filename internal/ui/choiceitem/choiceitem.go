@@ -1,8 +1,8 @@
 package choiceitem
 
 import (
+	styles "github.com/CaeptnCrunch/taskui/internal"
 	"strings"
-	styles "taskui/internal"
 )
 
 type Choice struct {

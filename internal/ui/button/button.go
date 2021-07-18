@@ -1,8 +1,8 @@
 package button
 
 import (
+	styles "github.com/CaeptnCrunch/taskui/internal"
 	"strings"
-	styles "taskui/internal"
 )
 
 type Model struct {

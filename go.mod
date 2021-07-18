@@ -1,4 +1,4 @@
-module taskui
+module github.com/CaeptnCrunch/taskui
 
 go 1.15
 

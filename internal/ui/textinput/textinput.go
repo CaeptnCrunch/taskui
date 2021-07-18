@@ -1,9 +1,9 @@
 package textinput
 
 import (
+	styles "github.com/CaeptnCrunch/taskui/internal"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	styles "taskui/internal"
 )
 
 type Model struct {

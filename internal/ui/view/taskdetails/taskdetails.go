@@ -3,15 +3,15 @@ package taskdetails
 import (
 	"fmt"
 	"github.com/CaeptnCrunch/go-taskwarrior"
+	styles "github.com/CaeptnCrunch/taskui/internal"
+	"github.com/CaeptnCrunch/taskui/internal/ui/button"
+	"github.com/CaeptnCrunch/taskui/internal/ui/choiceitem"
+	"github.com/CaeptnCrunch/taskui/internal/ui/singlechoicecombo"
+	"github.com/CaeptnCrunch/taskui/internal/ui/textinput"
 	teaTextinput "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"log"
 	"strings"
-	styles "taskui/internal"
-	"taskui/internal/ui/button"
-	"taskui/internal/ui/choiceitem"
-	"taskui/internal/ui/singlechoicecombo"
-	"taskui/internal/ui/textinput"
 )
 
 const (
