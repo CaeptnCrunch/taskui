@@ -3,7 +3,7 @@ package taskdetails
 import (
 	"fmt"
 	"github.com/CaeptnCrunch/go-taskwarrior"
-	styles "github.com/CaeptnCrunch/taskui/internal"
+	"github.com/CaeptnCrunch/taskui/internal/styles"
 	"github.com/CaeptnCrunch/taskui/internal/ui/button"
 	"github.com/CaeptnCrunch/taskui/internal/ui/choiceitem"
 	"github.com/CaeptnCrunch/taskui/internal/ui/singlechoicecombo"

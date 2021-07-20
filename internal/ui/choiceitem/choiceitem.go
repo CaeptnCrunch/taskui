@@ -1,7 +1,7 @@
 package choiceitem
 
 import (
-	styles "github.com/CaeptnCrunch/taskui/internal"
+	"github.com/CaeptnCrunch/taskui/internal/styles"
 	"strings"
 )
 

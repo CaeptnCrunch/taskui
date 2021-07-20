@@ -1,7 +1,7 @@
 package textinput
 
 import (
-	styles "github.com/CaeptnCrunch/taskui/internal"
+	"github.com/CaeptnCrunch/taskui/internal/styles"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
