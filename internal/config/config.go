@@ -26,11 +26,33 @@ type Config struct {
 	Loglevel    string
 }
 
-func Load(configPath string) (err error) {
-	contents, err := ioutil.ReadFile(util.ExpandUnixPath(configPath))
+func Load() (err error) {
+	configPath := GetDefaultConfigPath()
+
+	// check if config file exits
+	_, err = os.Stat(configPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Create default config
+			err = CreateDefaultConfig()
+			if err != nil {
+				// If we still have an error we let the user handle it
+				return err
+			}
+			// At this point we assume that the config has been created successfully
+		}
+	}
+
+	contents, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		log.WithError(err).Error(fmt.Sprintf("Unable to open config file: %s", configPath))
-		return
+		err = CreateDefaultConfig()
+		if err != nil {
+
+			return
+		} else {
+
+		}
 	}
 
 	var config Config
@@ -91,7 +113,10 @@ func CreateDefaultConfig() (err error) {
 		Loglevel:    log.InfoLevel.String(),
 	}
 	conf = &config
-	Save(util.ExpandUnixPath(defaultConfigFile))
+	err = Save(util.ExpandUnixPath(defaultConfigFile))
+	if err != nil {
+		log.WithError(err).Error("Unable to save default config")
+	}
 
 	return
 }

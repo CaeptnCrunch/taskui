@@ -1,4 +1,4 @@
-package taskdetails
+package createtasks
 
 import (
 	"fmt"
